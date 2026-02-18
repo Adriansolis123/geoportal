@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GeoPortal Limón Indanza - Sistema Avanzado</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <h1>🌍 GeoPortal Limón Indanza</h1>
+            <span class="header-subtitle">Sistema Avanzado de Análisis Ambiental</span>
+        </div>
+        <div class="header-right">
+            <button id="btnAnalisis" class="btn-header"><i class="fas fa-chart-bar"></i> Análisis</button>
+            <button id="btnDenuncias" class="btn-header"><i class="fas fa-exclamation-triangle"></i> Denuncias</button>
+            <button id="btnReportes" class="btn-header"><i class="fas fa-file-pdf"></i> Reportes</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- SIDEBAR IZQUIERDO -->
+        <aside class="sidebar-left">
+            <div class="sidebar-section">
+                <h3>🗺️ Capas Geoespaciales</h3>
+                <div class="layers-container">
+                    <label class="layer-item">
+                        <input type="checkbox" data-layer="v_cobertura" class="layer-checkbox">
+                        <span class="layer-name">🌿 Cobertura Vegetal</span>
+                        <span class="layer-count" id="count-v_cobertura">0</span>
+                    </label>
+                    <label class="layer-item">
+                        <input type="checkbox" data-layer="v_incendios" class="layer-checkbox">
+                        <span class="layer-name">🔥 Incendios</span>
+                        <span class="layer-count" id="count-v_incendios">0</span>
+                    </label>
+                    <label class="layer-item">
+                        <input type="checkbox" data-layer="v_poblados" class="layer-checkbox">
+                        <span class="layer-name">🏘️ Poblados</span>
+                        <span class="layer-count" id="count-v_poblados">0</span>
+                    </label>
+                    <label class="layer-item">
+                        <input type="checkbox" data-layer="v_educativas" class="layer-checkbox">
+                        <span class="layer-name">📚 Educativas</span>
+                        <span class="layer-count" id="count-v_educativas">0</span>
+                    </label>
+                    <label class="layer-item">
+                        <input type="checkbox" data-layer="v_vias" class="layer-checkbox">
+                        <span class="layer-name">🛣️ Red Vial</span>
+                        <span class="layer-count" id="count-v_vias">0</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>🎨 Filtros</h3>
+                <div class="filters-container">
+                    <label>
+                        <span>Opacidad:</span>
+                        <input type="range" id="opacitySlider" min="0" max="100" value="70">
+                        <span id="opacityValue">70%</span>
+                    </label>
+                    <label>
+                        <span>Radio (puntos):</span>
+                        <input type="range" id="radiusSlider" min="2" max="15" value="6">
+                        <span id="radiusValue">6</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>📊 Estadísticas</h3>
+                <div id="stats-container" class="stats-grid"></div>
+            </div>
+        </aside>
+
+        <!-- MAPA CENTRAL -->
+        <div id="map" class="map-container"></div>
+
+        <!-- SIDEBAR DERECHO - PANEL DE CONTROL -->
+        <aside class="sidebar-right">
+            <div class="tabs-buttons">
+                <button class="tab-btn active" data-tab="info">ℹ️ Info</button>
+                <button class="tab-btn" data-tab="analysis">📈 Análisis</button>
+                <button class="tab-btn" data-tab="reports">📋 Reportes</button>
+            </div>
+
+            <div class="tab-content active" id="tab-info">
+                <h3>Información de Capas</h3>
+                <div id="info-panel"></div>
+            </div>
+
+            <div class="tab-content" id="tab-analysis">
+                <h3>Herramientas de Análisis</h3>
+                <div class="analysis-tools">
+                    <button class="btn-analysis" id="btnBufferAnalysis">
+                        <i class="fas fa-square-dashed"></i> Análisis de Buffer
+                    </button>
+                    <button class="btn-analysis" id="btnProximityAnalysis">
+                        <i class="fas fa-ruler"></i> Proximidad
+                    </button>
+                    <button class="btn-analysis" id="btnHeatMap">
+                        <i class="fas fa-fire"></i> Mapa de Calor
+                    </button>
+                    <button class="btn-analysis" id="btnOverlay">
+                        <i class="fas fa-layer-group"></i> Superposición
+                    </button>
+                    <button class="btn-analysis" id="btnSpatialStats">
+                        <i class="fas fa-calculator"></i> Estadísticas Espaciales
+                    </button>
+                </div>
+                <div id="analysis-results"></div>
+            </div>
+
+            <div class="tab-content" id="tab-reports">
+                <h3>Generación de Reportes</h3>
+                <div class="report-tools">
+                    <button class="btn-report" id="btnReportCobertura">
+                        📊 Cobertura Vegetal
+                    </button>
+                    <button class="btn-report" id="btnReportIncendios">
+                        🔥 Análisis Incendios
+                    </button>
+                    <button class="btn-report" id="btnReportPoblacion">
+                        👥 Riesgo Poblacional
+                    </button>
+                    <button class="btn-report" id="btnReportIntegral">
+                        📋 Reporte Integral
+                    </button>
+                </div>
+                <div id="report-results"></div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL DENUNCIAS AVANZADO -->
+    <div id="denunciasModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>📋 Sistema de Denuncias Ambientales</h2>
+            
+            <div class="tabs-modal">
+                <button class="tab-modal active" data-tab-modal="nueva">Nueva Denuncia</button>
+                <button class="tab-modal" data-tab-modal="listado">Listado</button>
+                <button class="tab-modal" data-tab-modal="estadisticas">Estadísticas</button>
+            </div>
+
+            <!-- Nueva Denuncia -->
+            <div class="tab-modal-content active" id="tab-nueva">
+                <form id="formDenuncia">
+                    <!-- NOMBRE - REQUERIDO -->
+                    <div class="form-group">
+                        <label>Nombre o Seudónimo *</label>
+                        <input type="text" name="nombre" placeholder="Tu nombre (puede ser anónimo)" required>
+                        <small>Puedes usar un seudónimo o nombre ficticio</small>
+                    </div>
+
+                    <!-- INFORMACIÓN DE CONTACTO OPCIONAL -->
+                    <div class="form-section">
+                        <h4>📞 Contacto (Opcional)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email (Opcional)</label>
+                                <input type="email" name="email" placeholder="tu@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono (Opcional)</label>
+                                <input type="tel" name="telefono" placeholder="+593 9 99999999">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TIPO DE PROBLEMA -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Problema *</label>
+                            <select name="tipo_denuncia" required>
+                                <option value="">Selecciona un tipo</option>
+                                <option value="incendio">🔥 Incendio Forestal</option>
+                                <option value="deforestacion">🌳 Deforestación</option>
+                                <option value="contaminacion">💨 Contaminación</option>
+                                <option value="fauna">🦁 Fauna en Peligro</option>
+                                <option value="agua">💧 Contaminación Hídrica</option>
+                                <option value="residuos">🗑️ Residuos Ilegales</option>
+                                <option value="otro">📌 Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nivel de Severidad *</label>
+                            <select name="severidad" required>
+                                <option value="">Selecciona severidad</option>
+                                <option value="baja">🟢 Baja</option>
+                                <option value="media">🟡 Media</option>
+                                <option value="alta">🔴 Alta</option>
+                                <option value="critica">⛔ Crítica</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- UBICACIÓN Y DESCRIPCIÓN -->
+                    <div class="form-group">
+                        <label>Ubicación *</label>
+                        <input type="text" name="ubicacion" placeholder="Ubicación del problema" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción Detallada *</label>
+                        <textarea name="descripcion" placeholder="Describe el problema con detalle" rows="5" required></textarea>
+                    </div>
+
+                    <!-- GEOLOCALIZACIÓN -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Latitud</label>
+                            <input type="number" name="latitud" step="0.000001" readonly id="lat">
+                        </div>
+                        <div class="form-group">
+                            <label>Longitud</label>
+                            <input type="number" name="longitud" step="0.000001" readonly id="lng">
+                        </div>
+                        <div class="form-group">
+                            <button type="button" id="btnGeolocate" class="btn-geo">📍 Obtener Ubicación</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">✓ Enviar Denuncia</button>
+                </form>
+            </div>
+
+            <!-- Listado Denuncias -->
+            <div class="tab-modal-content" id="tab-listado">
+                <div id="denuncias-list"></div>
+            </div>
+
+            <!-- Estadísticas Denuncias -->
+            <div class="tab-modal-content" id="tab-estadisticas">
+                <div id="denuncias-stats"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ANÁLISIS -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="modal-close">&times;</span>
+            <h2>📈 Herramientas de Análisis Avanzado</h2>
+            <div id="analysisContent"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
